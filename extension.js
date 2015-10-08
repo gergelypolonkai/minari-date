@@ -1,3 +1,26 @@
+/*
+ * Minari Date extension for GNOME Shell
+ *
+ * Copyright © 2014-2015
+ *     Gergely Polonkai <gergely@polonkai.eu>
+ *
+ * This file is part of gnome-shell-extension-minari-date.
+ *
+ * gnome-shell-extension-minari-date is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * gnome-shell-extension-minari-date is distributed in the hope that
+ * it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with gnome-shell-extension-minari-date.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
 const Main = imports.ui.main;
 const MainLoop = imports.mainloop;
 const Lang = imports.lang;
@@ -39,14 +62,11 @@ const _minariMonthNames = new Array(
     'Rodom'
 );
 
-let _updateInterval = 5;
+const MinariDateButton = new Lang.Class({
+    Name: 'MinariDateButton',
 
-function MinariDate() {
-    this._init();
-}
-
-MinariDate.prototype = {
-    __proto__: PanelMenu.Button.prototype,
+    Extends: PanelMenu.Button,
+    updateInterval: 5,
 
     _init: function() {
         PanelMenu.Button.prototype._init.call(this, 0.0);
@@ -60,7 +80,16 @@ MinariDate.prototype = {
             y_align: Clutter.ActorAlign.CENTER
         });
         this.panelContainer.add(this.label);
-   },
+
+        this._updateDate();
+        this.timer = MainLoop.timeout_add_seconds(
+            this.updateInterval,
+            Lang.bind(this, this._updateDate));
+    },
+
+    stop: function() {
+        MainLoop.remove_source(this.timer);
+    },
 
     _updateDate: function() {
         let today = new Date();
@@ -180,23 +209,34 @@ MinariDate.prototype = {
             minariWeekday = minariDay % 6;
         }
 
-        let new_text = minariYear + ' ' + ((minariSpecialDay == -1) ? _minariMonthNames[minariMonth] + ' ' + minariDay + ' (' + _minariWeekdayNames[minariWeekday] + ')' : _minariSpecialDayNames[minariSpecialDay]);
+        let new_text = minariYear + ' '
+            + (
+                (minariSpecialDay == -1)
+                    ? _minariMonthNames[minariMonth]
+                        + ' '
+                        + minariDay
+                        + ' ('
+                        + _minariWeekdayNames[minariWeekday]
+                        + ')'
+                    : _minariSpecialDayNames[minariSpecialDay]);
 
         this.label.set_text(new_text);
 
-        _timer = MainLoop.timeout_add_seconds(_updateInterval, Lang.bind(_indicator, _indicator._updateDate));
+        return true;
     }
-};
+});
+
+let minariDateMenu;
 
 function init(metadata) {
 }
 
-let _indicator;
-let _timer;
-
 function enable() {
-    _indicator = new MinariDate;
-    Main.panel.addToStatusArea('minari_date', _indicator, null, 'center');
-    _indicator._updateDate();
-    _timer = MainLoop.timeout_add_seconds(_updateInterval, Lang.bind(_indicator, _indicator._updateDate));
+    minariDateMenu = new MinariDateButton();
+    Main.panel.addToStatusArea('minaridate', minariDateMenu, null, 'center');
+}
+
+function disable() {
+    minariDateMenu.stop();
+    minariDateMenu.destroy();
 }
