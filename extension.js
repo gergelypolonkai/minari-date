@@ -3,6 +3,7 @@ const MainLoop = imports.mainloop;
 const Lang = imports.lang;
 const PanelMenu = imports.ui.panelMenu;
 const St = imports.gi.St;
+const Clutter = imports.gi.Clutter;
 
 const _minariSpecialDayNames = new Array(
     'Hëður',
@@ -50,9 +51,16 @@ MinariDate.prototype = {
     _init: function() {
         PanelMenu.Button.prototype._init.call(this, 0.0);
 
-        this.label = new St.Label({ text: 'Initializing' });
-        this.actor.add_actor(this.label);
-    },
+        this.panelContainer = new St.BoxLayout({style_class: "panel-box"});
+        this.actor.add_actor(this.panelContainer);
+        this.actor.add_style_class_name('panel-status-button');
+
+        this.label = new St.Label({
+            text: 'Initializing',
+            y_align: Clutter.ActorAlign.CENTER
+        });
+        this.panelContainer.add(this.label);
+   },
 
     _updateDate: function() {
         let today = new Date();
@@ -192,4 +200,3 @@ function enable() {
     _indicator._updateDate();
     _timer = MainLoop.timeout_add_seconds(_updateInterval, Lang.bind(_indicator, _indicator._updateDate));
 }
-
