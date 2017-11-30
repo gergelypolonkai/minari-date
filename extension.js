@@ -88,7 +88,7 @@ const MinariDateButton = new Lang.Class({
     },
 
     stop: function() {
-        MainLoop.remove_source(this.timer);
+        MainLoop.source_remove(this.timer);
     },
 
     _updateDate: function() {
