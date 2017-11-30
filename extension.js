@@ -21,6 +21,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+const GLib = imports.gi.GLib;
 const Main = imports.ui.main;
 const MainLoop = imports.mainloop;
 const Lang = imports.lang;
